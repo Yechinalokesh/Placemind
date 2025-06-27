@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Placemind | Login & Register</title>
+  <style>
+    /* --- NEW BLUE THEME FOR AUTH PAGE --- */
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      margin: 0;
+      background-image: url('vgntbg.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 10px 20px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* UPDATED: Border color changed to new theme blue */
+      border-bottom: 2px solid #4f46e5;
+      width: 100%;
+      box-sizing: border-box;
+      flex-shrink: 0;
+    }
+    header img { height: 60px; margin-right: 15px; }
+    header .title-block { text-align: left; }
+    header h1 { font-weight: bold; font-size: 24px; margin: 0; color: #333; }
+    header .subtitle { font-size: 14px; color: #555; }
+    .content-wrapper { display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; padding: 20px; width: 100%; box-sizing: border-box; }
+    .auth-container { background: rgba(255, 255, 255, 0.9); padding: 30px; border-radius: 10px; width: 100%; max-width: 400px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); text-align: center; }
+    h2 { font-weight: bold; color: #333; margin-top: 0; }
+    .tab-buttons {
+      display: flex;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      overflow: hidden;
+      /* UPDATED: Border color to new theme */
+      border: 1px solid #4f46e5;
+    }
+    .tab-buttons button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      background: white;
+      /* UPDATED: Text color to new theme */
+      color: #4f46e5;
+      transition: all 0.3s;
+    }
+    .tab-buttons button.active {
+      /* UPDATED: Active button background to new theme */
+      background: #4f46e5;
+      color: white;
+    }
+    .tab { display: none; }
+    .tab.active { display: block; }
+    input, select { box-sizing: border-box; width: 100%; margin-bottom: 15px; padding: 12px; border-radius: 5px; border: 1px solid #ccc; font-family: 'Segoe UI', sans-serif; font-size: 16px; }
+    input:focus, select:focus {
+        /* UPDATED: Focus color to new theme */
+        border-color: #4f46e5;
+        outline: none;
+    }
+    .submit-btn {
+      /* UPDATED: Submit button background to new theme */
+      background: #4f46e5;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 5px;
+      width: 100%;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .submit-btn:hover {
+      /* UPDATED: Hover color to new theme */
+      background-color: #4338ca;
+    }
+    #message-area { margin-top: 15px; font-weight: bold; min-height: 20px; }
+    /* UPDATED: Success message color to new theme */
+    .message-success { color: #4338ca; }
+    .message-error { color: #D32F2F; }
+    footer { margin-top: 20px; }
+    footer a { color: white; text-decoration: none; font-weight: bold; background: rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 5px; transition: background-color 0.3s; }
+    footer a:hover { background: rgba(0,0,0,0.6); }
+  </style>
+</head>
+<body>
+  <!-- The HTML structure is unchanged, only the CSS colors have been updated -->
+  <header><img src="vgntlogo.png" alt="VGNT Logo"><div class="title-block"><h1>Vignan Institute of Technology and Science</h1><div class="subtitle">Placemind Authentication Portal</div></div></header><div class="content-wrapper"><main class="auth-container"><h2>Welcome Back!</h2><div class="tab-buttons"><button id="loginTabBtn" class="active">Login</button><button id="registerTabBtn">Register</button></div><div id="message-area"></div><div id="loginForm" class="tab active"><form id="login"><input type="email" id="loginEmail" placeholder="Email Address" required /><input type="password" id="loginPassword" placeholder="Password" required /><button type="submit" class="submit-btn">Login Securely</button></form></div><div id="registerForm" class="tab"><form id="register"><input type="text" id="regName" placeholder="Full Name" required /><input type="email" id="regEmail" placeholder="Email Address" required /><input type="password" id="regPassword" placeholder="Create Password" required /><select id="regRole" required><option value="" disabled selected>-- Select Your Role --</option><option value="student">🎓 Student</option><option value="tpo">👨‍💼 TPO (Admin)</option></select><button type="submit" class="submit-btn">Create Account</button></form></div></main><footer><a href="dashboard.html">← Back to Public Dashboard</a></footer></div>
+  <!-- The JavaScript is unchanged and will work perfectly -->
+  <script>const loginTabBtn=document.getElementById("loginTabBtn"),registerTabBtn=document.getElementById("registerTabBtn"),loginForm=document.getElementById("loginForm"),registerForm=document.getElementById("registerForm"),messageArea=document.getElementById("message-area");function showTab(e,t){loginForm.classList.remove("active"),registerForm.classList.remove("active"),loginTabBtn.classList.remove("active"),registerTabBtn.classList.remove("active"),e.classList.add("active"),t.classList.add("active"),messageArea.innerHTML=""}function showMessage(e,t){messageArea.className="success"===t?"message-success":"message-error",messageArea.textContent=e}loginTabBtn.addEventListener("click",()=>showTab(loginForm,loginTabBtn)),registerTabBtn.addEventListener("click",()=>showTab(registerForm,registerTabBtn)),document.getElementById("register").addEventListener("submit",async e=>{e.preventDefault(),showMessage("Registering your account...","message-success");const t=document.getElementById("regName").value,n=document.getElementById("regEmail").value,a=document.getElementById("regPassword").value,o=document.getElementById("regRole").value;try{const e=await fetch("/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:t,email:n,password:a,role:o})}),s=await e.json();e.ok?(showMessage("✅ Registration successful! Please log in.","message-success"),showTab(loginForm,loginTabBtn)):showMessage(`❌ ${s.message||"Registration failed."}`,"message-error")}catch(e){showMessage("❌ Network error. Please try again.","message-error")}}),document.getElementById("login").addEventListener("submit",async e=>{e.preventDefault(),showMessage("Logging you in...","message-success");const t=document.getElementById("loginEmail").value,n=document.getElementById("loginPassword").value;try{const e=await fetch("/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:t,password:n})}),a=await e.json();e.ok?(localStorage.setItem("token",a.token),localStorage.setItem("user",JSON.stringify(a.user)),showMessage("🔓 Login successful! Redirecting...","message-success"),setTimeout(()=>{("tpo"===a.user.role?window.location.href="tpo-home.html":window.location.href="drive.html")},1e3)):showMessage(`❌ ${a.message||"Invalid credentials."}`,"message-error")}catch(e){showMessage("❌ Network error. Please try again.","message-error")}});</script>
+</body>
+</html>

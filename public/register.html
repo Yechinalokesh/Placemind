@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register | Placemind</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #4b6cb7, #182848);
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .register-container {
+      background-color: rgba(0,0,0,0.5);
+      padding: 30px;
+      border-radius: 10px;
+      width: 300px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #00c6ff;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00aaff;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <h2>Register</h2>
+    <form id="registerForm">
+      <input type="text" id="name" placeholder="Full Name" required />
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <select id="role" required>
+        <option value="">Select Role</option>
+        <option value="student">Student</option>
+        <option value="tpo">TPO</option>
+      </select>
+      <button type="submit">Register</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('registerForm');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value.toLowerCase();
+      const password = document.getElementById('password').value;
+      const role = document.getElementById('role').value;
+
+      const response = await fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, role })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('🎉 Registered successfully!');
+        window.location.href = 'login.html';
+      } else {
+        alert('❌ ' + result.message || 'Registration failed!');
+      }
+    });
+  </script>
+</body>
+</html>

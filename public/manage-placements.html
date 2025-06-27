@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Placements - Placemind</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    /* Your full CSS is here, including tab styles */
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;margin:0;background-image:url(vgntbg.jpg);background-size:cover;background-position:center;background-attachment:fixed;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);color:#333}header{background-color:rgba(255,255,255,.9);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #4f46e5}.header-title{display:flex;align-items:center}header img{height:50px;margin-right:15px}header h1{font-family:'Times New Roman',Times,serif;font-size:24px;margin:0}#backBtn{background:#6c757d;color:#fff;border:none;padding:8px 16px;border-radius:5px;cursor:pointer;font-weight:700}#backBtn:hover{background-color:#5a6268}.container{max-width:1200px;margin:20px auto;padding:20px;background-color:rgba(255,255,255,.95);border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,.1)}.section{margin-bottom:30px}h2{font-family:'Times New Roman',Times,serif;border-bottom:2px solid #4f46e5;padding-bottom:10px;color:#4f46e5}form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;align-items:center}input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box}.form-actions{grid-column:1 / -1;text-align:right}.submit-btn{background:#4f46e5;color:#fff;padding:10px 20px;border:none;border-radius:5px;cursor:pointer;font-weight:700;font-size:16px}.table-wrapper{overflow-x:auto}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:12px;text-align:left;border:1px solid #ddd}th{background-color:#4f46e5;color:#fff}.action-buttons button{margin-right:5px;padding:5px 10px;border:none;border-radius:4px;cursor:pointer;color:#fff;font-weight:700}.edit-btn{background-color:#ffc107}.delete-btn{background-color:#dc3545}.manage-drive-btn{background-color:#17a2b8}.upload-area{padding:20px;border:2px dashed #4f46e5;border-radius:5px;text-align:center;background-color:#f8f9fc}#fileUploader{display:block;margin:15px auto}.download-actions button,#deleteAllBtn{margin-left:10px}
+    .tab-buttons{border-bottom:2px solid #ccc;margin-bottom:20px}.tab-btn{padding:10px 20px;cursor:pointer;border:none;background-color:transparent;font-size:16px;font-weight:700;color:#555}.tab-btn.active{color:#4f46e5;border-bottom:3px solid #4f46e5}.tab-content{display:none}.tab-content.active{display:block}textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:5px;font-family:inherit;font-size:16px}
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title"><img src="vgntlogo.png" alt="VGNT Logo"><h1>Manage Placements</h1></div>
+    <button id="backBtn" onclick="location.href='tpo-home.html'">← Back to Dashboard</button>
+  </header>
+
+  <div class="container">
+    <div class="section">
+      <h2>Add New Placement Record</h2>
+      <div class="tab-buttons">
+        <button class="tab-btn active" onclick="showTab('manual')">Manual Entry</button>
+        <button class="tab-btn" onclick="showTab('ai')">✨ Add with AI</button>
+      </div>
+      <div id="manualTab" class="tab-content active">
+        <form id="addStudentForm">
+          <input type="text" id="rollno" placeholder="Roll Number" required><input type="text" id="name" placeholder="Student Name" required>
+          <input type="email" id="email" placeholder="Student Email" required><input type="number" id="year" placeholder="Graduation Year" required>
+          <input type="number" step="0.01" id="cgpa" placeholder="CGPA" required>
+          <select id="branch" required><option value="" disabled selected>Select Branch</option><option value="CSE">CSE</option><option value="DS">DS</option><option value="AI&DS">AI&DS</option><option value="AIML">AIML</option><option value="IT">IT</option><option value="EEE">EEE</option><option value="ECE">ECE</option><option value="CIVIL">CIVIL</option><option value="MECH">MECH</option><option value="EIE">EIE</option></select>
+          <input type="text" id="company" placeholder="Company Name" required><input type="number" step="0.01" id="package" placeholder="Package (LPA)" required>
+          <div class="form-actions"><button type="submit" class="submit-btn">Add Student</button></div>
+        </form>
+      </div>
+      <div id="aiTab" class="tab-content">
+        <p style="margin:0 0 15px 0;color:#555;">Paste unstructured text below and let the AI fill out the form for you.</p>
+        <textarea id="aiTextInput" placeholder="e.g., New placement: Roll 21BEE05F, Ananya Sharma from ECE got placed at Deloitte with a package of 9.5 LPA. Her cgpa is 8.8 and grad year is 2025. Email is ananya.s@test.com" rows="6"></textarea>
+        <div style="text-align: right; margin-top: 10px;"><button id="aiProcessBtn" class="submit-btn">Process with AI</button></div>
+      </div>
+    </div>
+    <div class="section">
+      <h2>Bulk Upload Records</h2>
+      <div class="upload-area">
+        <p>Select an Excel (.xlsx, .xls) or CSV (.csv) file containing placement records.</p>
+        <input type="file" id="fileUploader" accept=".xlsx, .xls, .csv"><button id="uploadBtn" class="submit-btn" style="margin-top: 10px;">Upload</button>
+        <div id="uploadStatus" style="margin-top: 10px; font-weight: bold;"></div>
+      </div>
+    </div>
+    <div class="section">
+      <h2>Placement Records List</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <button id="deleteAllBtn" class="delete-btn" style="background-color: #a82c39;">Delete All Records</button>
+        <div class="download-actions">
+          <button id="downloadExcelBtn" class="submit-btn" style="background-color: #1D6F42;">Download as Excel</button>
+          <button id="downloadPdfBtn" class="submit-btn" style="background-color: #B91C1C;">Download as PDF</button>
+        </div>
+      </div>
+      <div class="table-wrapper"><table id="studentsTable">
+          <thead><tr><th>Roll No</th><th>Name</th><th>Email</th><th>Branch</th><th>Year</th><th>CGPA</th><th>Company</th><th>Package</th><th>Actions</th></tr></thead>
+          <tbody id="studentsTableBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <script>
+    // --- ALL YOUR JAVASCRIPT IS NOW HERE AND COMPLETE ---
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+    let currentPlacementData = [];
+    if (!token || !user || user.role !== 'tpo') {
+      alert('Access Denied. Please login as a TPO.');
+      window.location.href = 'auth.html';
+    }
+
+    window.onload = () => { loadStudents(); };
+
+    async function loadStudents() {
+        try {
+            const response = await fetch('/api/placements', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error("Failed to fetch placements");
+            currentPlacementData = await response.json();
+            const tableBody = document.getElementById('studentsTableBody');
+            tableBody.innerHTML = '';
+            if (currentPlacementData.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;font-style:italic;padding:20px;">No records found.</td></tr>`;
+            } else {
+                currentPlacementData.forEach(e => {
+                    const row = `<tr>
+                        <td>${e.rollno}</td><td>${e.name}</td><td>${e.email}</td>
+                        <td>${e.branch}</td><td>${e.year}</td><td>${e.cgpa}</td>
+                        <td>${e.company}</td><td>${e.package} LPA</td>
+                        <td class="action-buttons">
+                            <button class="edit-btn" onclick="editStudent('${e._id}')">Edit</button>
+                            <button class="manage-drive-btn" onclick="manageDrives('${e.email}', '${e.name}')">Drives</button>
+                            <button class="delete-btn" onclick="deleteStudent('${e._id}', '${e.name}')">Del</button>
+                        </td></tr>`;
+                    tableBody.innerHTML += row;
+                });
+            }
+        } catch (e) {
+            console.error("Error loading students:", e);
+            document.getElementById('studentsTableBody').innerHTML = `<tr><td colspan="9" style="text-align:center;color:red;">Error loading data.</td></tr>`;
+        }
+    }
+
+    document.getElementById('addStudentForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const t = {
+            rollno: document.getElementById("rollno").value, name: document.getElementById("name").value,
+            email: document.getElementById("email").value, branch: document.getElementById("branch").value,
+            year: document.getElementById("year").value, cgpa: document.getElementById("cgpa").value,
+            company: document.getElementById("company").value, package: document.getElementById("package").value
+        };
+        try {
+            const n = await fetch("/add-student", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(t) });
+            if (!n.ok) throw await n.json();
+            alert("Student added successfully!"), document.getElementById("addStudentForm").reset(), loadStudents();
+        } catch (t) { alert(`Error: ${t.message || "Failed to add student"}`); }
+    });
+
+    async function deleteStudent(e, t) {
+        if (confirm(`Delete record for ${t}?`)) try {
+            const n = await fetch(`/delete-student/${e}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+            if (!n.ok) throw await n.json();
+            alert("Student record deleted."), loadStudents();
+        } catch (e) { alert(`Error: ${e.message || "Failed to delete"}`); }
+    }
+
+    document.getElementById('deleteAllBtn').addEventListener('click', async () => {
+        const e = "DELETE ALL PLACEMENTS", t = prompt(`This action CANNOT BE UNDONE and will delete all student placement records.\nType "${e}" to confirm:`);
+        if (t === e) try {
+            const n = await fetch("/api/placements/delete-all", { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }), o = await n.json();
+            if (!n.ok) throw o;
+            alert(`✅ ${o.message}`), loadStudents();
+        } catch (e) { alert(`❌ Error: ${e.message || "Could not delete all records."}`); } else null !== t && alert("Deletion cancelled.");
+    });
+
+    function editStudent(e) { alert(`Edit for ${e} is a planned feature!`); }
+    function manageDrives(e, t) { window.location.href = `add-drive.html?email=${encodeURIComponent(e)}&name=${encodeURIComponent(t)}`; }
+
+    const fileUploader = document.getElementById('fileUploader'), uploadBtn = document.getElementById('uploadBtn'), uploadStatus = document.getElementById('uploadStatus');
+    uploadBtn.addEventListener('click', async () => {
+        if (0 === fileUploader.files.length) return uploadStatus.textContent = "Please select a file.", void(uploadStatus.style.color = "red");
+        const e = fileUploader.files[0];
+        uploadStatus.textContent = "Processing...", uploadStatus.style.color = "blue";
+        const t = new FileReader;
+        t.onload = async e => {
+            try {
+                const t = e.target.result, n = XLSX.read(t, { type: "binary" }), o = n.Sheets[n.SheetNames[0]], a = XLSX.utils.sheet_to_json(o);
+                if (0 === a.length) return uploadStatus.textContent = "File empty or bad format.", void(uploadStatus.style.color = "red");
+                await sendDataToServer(a);
+            } catch (e) { uploadStatus.textContent = "Error processing file.", uploadStatus.style.color = "red", console.error("File processing error:", e); }
+        }, t.onerror = () => { uploadStatus.textContent = "Could not read file.", uploadStatus.style.color = "red"; }, t.readAsBinaryString(e);
+    });
+
+    async function sendDataToServer(e) {
+        uploadStatus.textContent = "Uploading to server...", uploadStatus.style.color = "blue";
+        try {
+            const t = await fetch("/api/upload-placements", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(e) }), n = await t.json();
+            if (!t.ok) throw n;
+            const { details: o } = n;
+            uploadStatus.textContent = `✅ ${n.message || "Upload complete."} New: ${o.newlyInsertedViaUpsert || 0}, Updated: ${o.modifiedWithNewData || 0}.`, uploadStatus.style.color = "green", loadStudents();
+        } catch (e) { uploadStatus.textContent = `❌ Error: ${e.message || "Upload failed."}`, uploadStatus.style.color = "red", console.error("Server upload error:", e); }
+    }
+
+    document.getElementById('downloadExcelBtn').addEventListener('click', () => {
+        if (0 === currentPlacementData.length) return void alert("No data to download.");
+        const e = XLSX.utils.json_to_sheet(currentPlacementData.map(e => ({ "Roll No": e.rollno, Name: e.name, Email: e.email, Branch: e.branch, Year: e.year, CGPA: e.cgpa, Company: e.company, "Package (LPA)": e.package }))), t = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(t, e, "Placements"), XLSX.writeFile(t, "Placemind_Placement_Data.xlsx");
+    });
+
+    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+        if (0 === currentPlacementData.length) return void alert("No data to download.");
+        const { jsPDF: e } = window.jspdf, t = new e;
+        t.autoTable({
+            head: [["Roll No", "Name", "Email", "Branch", "Year", "CGPA", "Company", "Package (LPA)"]],
+            body: currentPlacementData.map(e => [e.rollno, e.name, e.email, e.branch, e.year, e.cgpa, e.company, e.package]),
+            startY: 20,
+            didDrawPage: function (e) { t.setFontSize(18), t.setTextColor(40), t.text("Placemind - Placement Records", e.settings.margin.left, 15); }
+        }), t.save("Placemind_Placement_Data.pdf");
+    });
+
+    // --- NEW: JAVASCRIPT FOR AI FEATURE ---
+    function showTab(tabName) {
+        document.getElementById('manualTab').classList.remove('active');
+        document.getElementById('aiTab').classList.remove('active');
+        document.querySelector('.tab-btn.active').classList.remove('active');
+        document.getElementById(tabName + 'Tab').classList.add('active');
+        document.querySelector(`.tab-btn[onclick="showTab('${tabName}')"]`).classList.add('active');
+    }
+
+    document.getElementById('aiProcessBtn').addEventListener('click', async () => {
+        const textInput = document.getElementById('aiTextInput').value;
+        const processBtn = document.getElementById('aiProcessBtn');
+        if (!textInput.trim()) { alert('Please paste some text to process.'); return; }
+        processBtn.textContent = 'Processing...'; processBtn.disabled = true;
+        try {
+            const response = await fetch('/api/placements/parse-with-ai', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ text: textInput })
+            });
+            const data = await response.json();
+            if (!response.ok) throw data;
+            document.getElementById('rollno').value = data.rollno || '';
+            document.getElementById('name').value = data.name || '';
+            document.getElementById('email').value = data.email || '';
+            document.getElementById('year').value = data.year || '';
+            document.getElementById('cgpa').value = data.cgpa || '';
+            document.getElementById('branch').value = data.branch || '';
+            document.getElementById('company').value = data.company || '';
+            document.getElementById('package').value = data.package || '';
+            alert('AI has filled the form! Please review and click "Add Student".');
+            showTab('manual');
+        } catch (error) {
+            alert(`AI Error: ${error.message || 'Could not process the text.'}`);
+        } finally {
+            processBtn.textContent = 'Process with AI';
+            processBtn.disabled = false;
+        }
+    });
+  </script>
+</body>
+</html>

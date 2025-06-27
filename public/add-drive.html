@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Drive Status - Placemind</title>
+  <style>
+    /* --- THEME FROM DASHBOARD.HTML --- */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background-image: url('vgntbg.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #4f46e5;
+      flex-shrink: 0;
+    }
+    .header-title { display: flex; align-items: center; }
+    header img { height: 50px; margin-right: 15px; }
+    header h1 {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 24px;
+      margin: 0;
+    }
+    #backBtn {
+      background: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    #backBtn:hover { background-color: #5a6268; }
+
+    .content-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-grow: 1;
+        padding: 20px;
+    }
+
+    .form-container {
+      width: 100%;
+      max-width: 800px;
+      padding: 30px;
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    h2 {
+      font-family: 'Times New Roman', Times, serif;
+      border-bottom: 2px solid #4f46e5;
+      padding-bottom: 10px;
+      color: #4f46e5;
+      margin-top: 0;
+    }
+    .form-section { margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-group { display: flex; flex-direction: column; }
+    label { font-weight: bold; margin-bottom: 5px; }
+    input, select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+    #roundsContainer .round { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+    #addRoundBtn {
+      background: #17a2b8;
+      color: white;
+      border: none;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    #addRoundBtn:hover { background-color: #138496; }
+    .submit-btn {
+      background: #4f46e5;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+      float: right;
+      transition: background-color 0.3s;
+    }
+    .submit-btn:hover { background-color: #4338ca; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title">
+      <img src="vgntlogo.png" alt="VGNT Logo">
+      <h1>Manage Drive Status</h1>
+    </div>
+    <button id="backBtn" onclick="window.location.href='tpo-home.html'">← Back to TPO Home</button>
+  </header>
+
+  <div class="content-wrapper">
+    <div class="form-container">
+      <h2>Drive Details for <span id="studentName">Student Name...</span></h2>
+      <form id="driveForm">
+        <div class="form-section form-grid">
+          <div class="form-group">
+            <label for="studentEmail">Student Email</label>
+            <input type="email" id="studentEmail" placeholder="student@example.com">
+          </div>
+          <div class="form-group">
+            <label for="companyName">Company Name</label>
+            <input type="text" id="companyName" required>
+          </div>
+        </div>
+        <div class="form-section">
+          <label>Interview Rounds</label>
+          <div id="roundsContainer">
+            <div class="round">
+                <input type="text" class="round-name" placeholder="Round 1 Name (e.g., Online Assessment)" style="flex-grow: 2;">
+                <select class="round-status" style="flex-grow: 1;">
+                    <option value="Pending">Pending</option><option value="Cleared">Cleared</option><option value="Rejected">Rejected</option>
+                </select>
+            </div>
+          </div>
+          <button type="button" id="addRoundBtn" style="margin-top: 10px;">+ Add Another Round</button>
+        </div>
+        <div class="form-section form-grid">
+          <div class="form-group">
+            <label for="currentStatus">Final Drive Status</label>
+            <select id="currentStatus">
+              <option value="In Progress">In Progress</option><option value="Selected">Selected</option><option value="Rejected">Rejected</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="finalPackage">Final Package (LPA)</label>
+            <input type="number" step="0.01" id="finalPackage" placeholder="e.g., 12.5">
+          </div>
+        </div>
+        <button type="submit" class="submit-btn">Save Drive Status</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- A SINGLE, UNIFIED SCRIPT TAG WITH ALL FUNCTIONALITY -->
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Access Denied. Please login as a TPO.');
+        window.location.href = 'auth.html';
+    }
+
+    window.onload = () => {
+        const params = new URLSearchParams(window.location.search);
+        const email = params.get('email');
+        const name = params.get('name');
+
+        if (!email) {
+            alert('No student was selected! Please go back and select a student.');
+            window.location.href = 'tpo-home.html';
+            return;
+        }
+
+        document.getElementById('studentName').textContent = name || email;
+        document.getElementById('studentEmail').value = email;
+        document.getElementById('studentEmail').readOnly = true;
+    };
+
+    document.getElementById('addRoundBtn').addEventListener('click', () => {
+        const roundsContainer = document.getElementById('roundsContainer');
+        const roundCount = roundsContainer.children.length + 1;
+        const roundDiv = document.createElement('div');
+        roundDiv.className = 'round';
+        roundDiv.innerHTML = `
+            <input type="text" class="round-name" placeholder="Round ${roundCount} Name" style="flex-grow: 2;">
+            <select class="round-status" style="flex-grow: 1;">
+                <option value="Pending">Pending</option>
+                <option value="Cleared">Cleared</option>
+                <option value="Rejected">Rejected</option>
+            </select>
+        `;
+        roundsContainer.appendChild(roundDiv);
+    });
+
+    // --- NEWLY ADDED FORM SUBMISSION LOGIC ---
+    document.getElementById('driveForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const rounds = [];
+        document.querySelectorAll('.round').forEach(roundDiv => {
+            const name = roundDiv.querySelector('.round-name').value;
+            const status = roundDiv.querySelector('.round-status').value;
+            if (name) {
+                rounds.push({ name, status });
+            }
+        });
+
+        const driveData = {
+            studentEmail: document.getElementById('studentEmail').value,
+            companyName: document.getElementById('companyName').value,
+            currentStatus: document.getElementById('currentStatus').value,
+            finalPackage: document.getElementById('finalPackage').value || 0,
+            rounds: rounds
+        };
+        
+        try {
+            const response = await fetch('/api/drive-status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(driveData)
+            });
+
+            if (response.ok) {
+                alert('Drive status saved successfully!');
+                window.location.href = 'tpo-home.html';
+            } else {
+                const error = await response.json();
+                alert(`Error: ${error.message || 'Failed to save drive status.'}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('A network error occurred. Please check your connection.');
+        }
+    });
+  </script>
+</body>
+</html>

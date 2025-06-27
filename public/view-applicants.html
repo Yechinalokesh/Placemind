@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>View Applicants - Placemind</title>
+  <style>
+    /* Reusing the same professional theme */
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;margin:0;background-image:url(vgntbg.jpg);background-size:cover;background-position:center;background-attachment:fixed;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);color:#333}header{background-color:rgba(255,255,255,.9);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #4f46e5}.header-title{display:flex;align-items:center}header img{height:50px;margin-right:15px}header h1{font-family:'Times New Roman',Times,serif;font-size:24px;margin:0}#backBtn{background:#6c757d;color:#fff;border:none;padding:8px 16px;border-radius:5px;cursor:pointer;font-weight:700}#backBtn:hover{background-color:#5a6268}.container{max-width:900px;margin:20px auto;padding:20px;background-color:rgba(255,255,255,.95);border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,.1)}h2{font-family:'Times New Roman',Times,serif;border-bottom:2px solid #4f46e5;padding-bottom:10px;color:#4f46e5}.table-wrapper{overflow-x:auto}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:12px;text-align:left;border:1px solid #ddd}th{background-color:#4f46e5;color:#fff}
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title">
+      <img src="vgntlogo.png" alt="VGNT Logo">
+      <h1>View Applicants</h1>
+    </div>
+    <button id="backBtn" onclick="location.href='manage-drives.html'">← Back to Manage Drives</button>
+  </header>
+
+  <div class="container">
+    <h2 id="pageTitle">Loading applicants...</h2>
+    <div class="table-wrapper">
+      <table id="applicantsTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Student Name</th>
+            <th>Student Email</th>
+            <th>Application Date</th>
+          </tr>
+        </thead>
+        <tbody id="applicantsTableBody">
+          <!-- Applicant data will be loaded here by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) { window.location.href = 'auth.html'; }
+
+    window.onload = () => {
+        const params = new URLSearchParams(window.location.search);
+        const driveId = params.get('driveId');
+        const companyName = params.get('company');
+
+        if (!driveId) {
+            alert('No drive selected!');
+            window.location.href = 'manage-drives.html';
+            return;
+        }
+
+        document.getElementById('pageTitle').textContent = `Applicants for ${companyName} Drive`;
+        loadApplicants(driveId);
+    };
+
+    async function loadApplicants(driveId) {
+        const tableBody = document.getElementById('applicantsTableBody');
+        try {
+            const response = await fetch(`/api/drives/${driveId}/applications`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const applications = await response.json();
+            if (!response.ok) throw applications;
+
+            if (applications.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No students have applied for this drive yet.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = '';
+            applications.forEach((app, index) => {
+                const row = `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${app.studentName}</td>
+                        <td>${app.studentEmail}</td>
+                        <td>${new Date(app.createdAt).toLocaleString()}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+
+        } catch (error) {
+            console.error('Error loading applicants:', error);
+            tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:red;">Error: ${error.message || 'Could not load data.'}</td></tr>`;
+        }
+    }
+  </script>
+</body>
+</html>

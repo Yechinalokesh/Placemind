@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Company Drives - Placemind</title>
+  <style>
+    /* Your full CSS is here */
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;margin:0;background-image:url(vgntbg.jpg);background-size:cover;background-position:center;background-attachment:fixed;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);color:#333}header{background-color:rgba(255,255,255,.9);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #4f46e5}.header-title{display:flex;align-items:center}header img{height:50px;margin-right:15px}header h1{font-family:'Times New Roman',Times,serif;font-size:24px;margin:0}#backBtn{background:#6c757d;color:#fff;border:none;padding:8px 16px;border-radius:5px;cursor:pointer;font-weight:700}#backBtn:hover{background-color:#5a6268}.container{max-width:1200px;margin:20px auto;padding:20px;background-color:rgba(255,255,255,.95);border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,.1)}.section{margin-bottom:30px}h2{font-family:'Times New Roman',Times,serif;border-bottom:2px solid #4f46e5;padding-bottom:10px;color:#4f46e5}form{display:grid;grid-template-columns:1fr 1fr;gap:20px}textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-family:inherit;font-size:16px;grid-column:1 / -1}input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:16px}.form-actions{grid-column:1 / -1;text-align:right}.submit-btn{background:#4f46e5;color:#fff;padding:10px 20px;border:none;border-radius:5px;cursor:pointer;font-weight:700;font-size:16px}.table-wrapper{overflow-x:auto}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:12px;text-align:left;border:1px solid #ddd}th{background-color:#4f46e5;color:#fff}.branch-checkboxes{display:flex;flex-wrap:wrap;gap:15px}.branch-checkboxes label{display:flex;align-items:center;gap:5px;font-weight:400}
+    .action-buttons button { margin-right: 5px; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; }
+    .view-btn { background-color: #28a745; }
+    .edit-btn { background-color: #ffc107; }
+    .delete-btn { background-color: #dc3545; }
+    .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:1000}.modal-content{background-color:#fff;padding:30px;border-radius:8px;width:90%;max-width:700px;box-shadow:0 5px 25px rgba(0,0,0,.3)}.modal-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;padding-bottom:15px;margin-bottom:20px}.modal-header h2{margin:0;padding:0;border:none}.close-btn{font-size:28px;font-weight:700;color:#aaa;cursor:pointer;background:0 0;border:none}.close-btn:hover{color:#333}
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title">
+      <img src="vgntlogo.png" alt="VGNT Logo">
+      <h1>Manage Company Drives</h1>
+    </div>
+    <button id="backBtn" onclick="location.href='tpo-home.html'">← Back to Dashboard</button>
+  </header>
+
+  <div class="container">
+    <div class="section">
+      <h2>Post a New Drive</h2>
+      <!-- THIS FORM IS NOW CORRECTLY FILLED IN -->
+      <form id="newDriveForm">
+        <input type="text" id="companyName" placeholder="Company Name" required>
+        <input type="text" id="jobRole" placeholder="Job Role (e.g., Software Engineer)" required>
+        <input type="number" id="packageLPA" placeholder="Package (LPA)" required step="0.1">
+        <input type="number" id="graduationYear" placeholder="Eligible Graduation Year" required>
+        <input type="number" id="minCGPA" placeholder="Minimum CGPA (e.g., 7.5)" required step="0.1">
+        <input type="date" id="lastDateToApply" required>
+        <textarea id="jobDescription" placeholder="Job Description and Responsibilities..." rows="5" required></textarea>
+        <div style="grid-column: 1 / -1;">
+            <label style="font-weight:bold; display:block; margin-bottom:10px;">Eligible Branches:</label>
+            <div class="branch-checkboxes" id="branchCheckboxes"></div>
+        </div>
+        <div class="form-actions"><button type="submit" class="submit-btn">Post Drive</button></div>
+      </form>
+    </div>
+    
+    <div class="section">
+      <h2>Posted Drives</h2>
+      <div class="table-wrapper">
+        <table id="drivesTable">
+          <thead><tr><th>Company</th><th>Role</th><th>Package (LPA)</th><th>Last Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="drivesTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="editDriveModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Edit Company Drive</h2>
+        <button class="close-btn" onclick="closeEditModal()">×</button>
+      </div>
+      <form id="editDriveForm">
+          <input type="hidden" id="editDriveId">
+          <input type="text" id="editCompanyName" placeholder="Company Name" required>
+          <input type="text" id="editJobRole" placeholder="Job Role" required>
+          <input type="number" id="editPackageLPA" placeholder="Package (LPA)" required step="0.1">
+          <input type="number" id="editGraduationYear" placeholder="Eligible Graduation Year" required>
+          <input type="number" id="editMinCGPA" placeholder="Minimum CGPA" required step="0.1">
+          <input type="date" id="editLastDateToApply" required>
+          <textarea id="editJobDescription" placeholder="Job Description..." rows="5" required></textarea>
+          <div style="grid-column: 1 / -1;">
+              <label style="font-weight:bold; display:block; margin-bottom:10px;">Eligible Branches:</label>
+              <div class="branch-checkboxes" id="editBranchCheckboxes"></div>
+          </div>
+          <div class="form-actions"><button type="submit" class="submit-btn">Save Changes</button></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // All of your existing JavaScript is here and correct.
+    const token = localStorage.getItem('token');
+    if (!token) { window.location.href = 'auth.html'; }
+    const branches = ["CSE", "DS", "AI&DS", "AIML", "IT", "EEE", "ECE", "CIVIL", "MECH", "EIE"];
+    window.onload = () => {
+        const checkboxesContainer = document.getElementById('branchCheckboxes');
+        branches.forEach(branch => {
+            checkboxesContainer.innerHTML += `<label><input type="checkbox" name="branches" value="${branch}"> ${branch}</label>`;
+        });
+        loadPostedDrives();
+    };
+    async function loadPostedDrives() {
+      const response = await fetch('/api/company-drives', { headers: { 'Authorization': `Bearer ${token}` } });
+      const drives = await response.json();
+      const tableBody = document.getElementById('drivesTableBody');
+      tableBody.innerHTML = '';
+      drives.forEach(drive => {
+        tableBody.innerHTML += `
+          <tr>
+            <td>${drive.companyName}</td><td>${drive.jobRole}</td><td>${drive.packageLPA}</td>
+            <td>${new Date(drive.lastDateToApply).toLocaleDateString()}</td><td>${drive.status}</td>
+            <td class="action-buttons">
+                <button class="view-btn" onclick="viewApplicants('${drive._id}', '${drive.companyName}')">Applicants</button>
+                <button class="edit-btn" onclick="editDrive('${drive._id}')">Edit</button>
+                <button class="delete-btn" onclick="deleteDrive('${drive._id}')">Delete</button>
+            </td>
+          </tr>`;
+      });
+    }
+    document.getElementById('newDriveForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const selectedBranches = Array.from(document.querySelectorAll('input[name="branches"]:checked')).map(cb => cb.value);
+        if(selectedBranches.length === 0) { alert('Please select at least one eligible branch.'); return; }
+        const driveData = {
+            companyName: document.getElementById('companyName').value, jobRole: document.getElementById('jobRole').value,
+            jobDescription: document.getElementById('jobDescription').value, packageLPA: document.getElementById('packageLPA').value,
+            lastDateToApply: document.getElementById('lastDateToApply').value,
+            eligibility: { branches: selectedBranches, minCGPA: document.getElementById('minCGPA').value, graduationYear: document.getElementById('graduationYear').value, }
+        };
+        try {
+            const response = await fetch('/api/company-drives', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(driveData)
+            });
+            const result = await response.json();
+            if(!response.ok) throw result;
+            alert('New company drive posted successfully!'); document.getElementById('newDriveForm').reset();
+            loadPostedDrives();
+        } catch(error) { alert(`Error: ${error.message || 'Failed to post drive.'}`); }
+    });
+    function viewApplicants(driveId, companyName) {
+        window.location.href = `view-applicants.html?driveId=${driveId}&company=${encodeURIComponent(companyName)}`;
+    }
+    async function deleteDrive(driveId) {
+        if (confirm('Are you sure you want to permanently delete this drive?')) {
+            try {
+                const response = await fetch(`/api/company-drives/${driveId}`, {
+                    method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await response.json();
+                if (!response.ok) throw result;
+                alert(result.message); loadPostedDrives();
+            } catch (error) { alert(`Error: ${error.message || 'Could not delete drive.'}`); }
+        }
+    }
+    async function editDrive(driveId) {
+        try {
+            const response = await fetch(`/api/company-drives/${driveId}`, { headers: { 'Authorization': `Bearer ${token}` }});
+            const drive = await response.json();
+            if (!response.ok) throw drive;
+            document.getElementById('editDriveId').value = drive._id;
+            document.getElementById('editCompanyName').value = drive.companyName;
+            document.getElementById('editJobRole').value = drive.jobRole;
+            document.getElementById('editPackageLPA').value = drive.packageLPA;
+            document.getElementById('editGraduationYear').value = drive.eligibility.graduationYear;
+            document.getElementById('editMinCGPA').value = drive.eligibility.minCGPA;
+            document.getElementById('editJobDescription').value = drive.jobDescription;
+            document.getElementById('editLastDateToApply').value = new Date(drive.lastDateToApply).toISOString().split('T')[0];
+            const editCheckboxesContainer = document.getElementById('editBranchCheckboxes');
+            editCheckboxesContainer.innerHTML = '';
+            branches.forEach(branch => {
+                const isChecked = drive.eligibility.branches.includes(branch);
+                editCheckboxesContainer.innerHTML += `<label><input type="checkbox" name="editBranches" value="${branch}" ${isChecked ? 'checked' : ''}> ${branch}</label>`;
+            });
+            document.getElementById('editDriveModal').style.display = 'flex';
+        } catch (error) { alert(`Error: Could not load drive data for editing. ${error.message || ''}`); }
+    }
+    function closeEditModal() {
+        document.getElementById('editDriveModal').style.display = 'none';
+    }
+    document.getElementById('editDriveForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const driveId = document.getElementById('editDriveId').value;
+        const selectedBranches = Array.from(document.querySelectorAll('input[name="editBranches"]:checked')).map(cb => cb.value);
+        const updatedData = {
+            companyName: document.getElementById('editCompanyName').value, jobRole: document.getElementById('editJobRole').value,
+            jobDescription: document.getElementById('editJobDescription').value, packageLPA: document.getElementById('editPackageLPA').value,
+            lastDateToApply: document.getElementById('editLastDateToApply').value,
+            eligibility: { branches: selectedBranches, minCGPA: document.getElementById('editMinCGPA').value, graduationYear: document.getElementById('editGraduationYear').value, }
+        };
+        try {
+            const response = await fetch(`/api/company-drives/${driveId}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(updatedData)
+            });
+            const result = await response.json();
+            if (!response.ok) throw result;
+            alert('Drive updated successfully!');
+            closeEditModal();
+            loadPostedDrives();
+        } catch (error) { alert(`Error: ${error.message || 'Failed to update drive.'}`); }
+    });
+  </script>
+</body>
+</html>

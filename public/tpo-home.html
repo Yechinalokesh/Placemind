@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TPO Dashboard - Placemind</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background-image: url('vgntbg.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      color: #333;
+    }
+    header {
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #4f46e5;
+    }
+    .header-title { display: flex; align-items: center; }
+    header img { height: 50px; margin-right: 15px; }
+    header h1 { font-family: 'Times New Roman', Times, serif; font-size: 24px; margin: 0; }
+    #logoutBtn {
+      background: #dc3545; color: white; border: none; padding: 8px 16px;
+      border-radius: 5px; cursor: pointer; font-weight: bold;
+    }
+    .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
+    .welcome-message {
+        font-size: 24px;
+        font-weight: bold;
+        padding: 20px;
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 8px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    /* NEW: Card-based navigation grid */
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+    }
+    .nav-card {
+      background-color: white;
+      border-radius: 8px;
+      padding: 25px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      border-top: 4px solid #4f46e5;
+    }
+    .nav-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    .nav-card h2 {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 20px;
+      margin-top: 0;
+      color: #4f46e5;
+    }
+    .nav-card p {
+      font-size: 16px;
+      color: #555;
+      min-height: 50px; /* To keep cards aligned */
+    }
+    .nav-card .icon {
+      font-size: 48px; /* For a large icon */
+      margin-bottom: 15px;
+      color: #4f46e5;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title">
+      <img src="vgntlogo.png" alt="VGNT Logo">
+      <h1>TPO Dashboard</h1>
+    </div>
+    <button id="logoutBtn">Logout</button>
+  </header>
+
+  <div class="container">
+    <div id="welcome" class="welcome-message"></div>
+
+    <div class="nav-grid">
+      
+      <div class="nav-card" onclick="location.href='manage-placements.html'">
+        <div class="icon">📊</div>
+        <h2>Manage Placements</h2>
+        <p>View, add, delete, and bulk upload placement records for all students.</p>
+      </div>
+
+      <div class="nav-card" onclick="location.href='manage-eligible-students.html'">
+        <div class="icon">📋</div>
+        <h2>Manage Eligible Students</h2>
+        <p>Upload and maintain the master list of all final-year students eligible for placements.</p>
+      </div>
+
+      <div class="nav-card" onclick="location.href='tpo-analytics.html'">
+        <div class="icon">📈</div>
+        <h2>Placement Analytics</h2>
+        <p>View insights like Placed vs. Unplaced students by branch and other key metrics.</p>
+      </div>
+      
+      <div class="nav-card" onclick="location.href='manage-drives.html'">
+        <div class="icon">📢</div>
+        <h2>Post Company Drives</h2>
+        <p>Create and manage job notifications and company drive announcements for students.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // This script remains simple - just security and welcome message
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (!token || !user || user.role !== 'tpo') {
+      alert('Access Denied. Please login as a TPO.');
+      window.location.href = 'auth.html';
+    }
+
+    window.onload = () => {
+        document.getElementById('welcome').textContent = `Welcome, ${user.name}!`;
+    };
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        alert('You have been logged out.');
+        window.location.href = 'auth.html';
+    });
+  </script>
+</body>
+</html>

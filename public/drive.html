@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Drives - Placemind</title>
+  <style>
+    /* --- Your Existing Main Theme --- */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background-image: url('vgntbg.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      color: #333;
+    }
+    header {
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #4f46e5;
+    }
+    .header-title { display: flex; align-items: center; }
+    header img { height: 50px; margin-right: 15px; }
+    header h1 { font-family: 'Times New Roman', Times, serif; font-size: 24px; margin: 0; }
+    #logoutBtn {
+      background: #dc3545; color: white; border: none; padding: 8px 16px;
+      border-radius: 5px; cursor: pointer; font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    #logoutBtn:hover { background-color: #c82333; }
+    
+    .container { max-width: 900px; margin: 20px auto; padding: 0 20px; }
+    
+    .welcome-message {
+        font-size: 24px;
+        font-weight: bold;
+        padding: 20px;
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .drive-card {
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .drive-header {
+      background-color: #4f46e5;
+      color: white;
+      padding: 15px 20px;
+    }
+    .drive-header h2 { margin: 0; font-size: 20px; }
+    .status-badge {
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 14px;
+      font-weight: bold;
+      text-transform: capitalize;
+    }
+    .status-Selected { background-color: #28a745; color: white; }
+    .status-Rejected { background-color: #dc3545; color: white; }
+    .status-InProgress, .status-in-progress { background-color: #ffc107; color: #333; }
+
+    .drive-body { padding: 20px; }
+    .rounds-timeline { list-style: none; padding-left: 0; margin: 0; }
+    .rounds-timeline li {
+      padding-left: 25px;
+      border-left: 3px solid #eee;
+      position: relative;
+      padding-bottom: 20px;
+    }
+    .rounds-timeline li:last-child { padding-bottom: 0; border-left-color: transparent; }
+    .rounds-timeline li::before {
+      content: ''; width: 15px; height: 15px; border-radius: 50%;
+      background-color: #ddd; border: 3px solid #f8f9fa;
+      position: absolute; left: -10.5px; top: 0;
+    }
+    .rounds-timeline li.cleared::before { background-color: #28a745; }
+    .rounds-timeline li.rejected::before { background-color: #dc3545; }
+    .round-name { font-weight: bold; }
+    .round-status { color: #555; font-size: 14px; }
+    
+    /* --- Styles for the Available Drives section --- */
+    .available-drive-item{border-bottom:1px solid #eee;padding:15px 0}.available-drive-item:last-child{border-bottom:none}.drive-details{display:flex;justify-content:space-between;align-items:flex-start}.drive-title{font-weight:700;font-size:18px}.drive-meta{font-size:14px;color:#555;margin-top:5px}.drive-apply button{background-color:#17a2b8;color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;font-weight:700;transition: all 0.2s;}
+    .drive-apply button:disabled { background-color: #28a745; cursor: not-allowed; } /* Green for applied */
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title">
+      <img src="vgntlogo.png" alt="VGNT Logo">
+      <h1>My Student Dashboard</h1>
+    </div>
+    <button id="logoutBtn">Logout</button>
+  </header>
+
+  <div class="container">
+    <div id="welcome" class="welcome-message">Loading your profile...</div>
+    
+    <!-- Section 1: My Applied Drives -->
+    <div class="drive-card">
+      <div class="drive-header"><h2>My Applied Drive Status</h2></div>
+      <div class="drive-body" id="myDrivesContainer"></div>
+    </div>
+    
+    <!-- Section 2: Available Company Drives -->
+    <div class="drive-card">
+      <div class="drive-header" style="background-color:#007bff;"><h2>Available Company Drives</h2></div>
+      <div class="drive-body" id="availableDrivesContainer"></div>
+    </div>
+  </div>
+
+  <script>
+    // --- GLOBAL SETUP ---
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    // --- SECURITY & PAGE INITIALIZATION ---
+    if (!token || !user || user.role !== 'student') {
+      alert('Unauthorized access! This page is for students only.');
+      window.location.href = 'auth.html';
+    }
+
+    window.onload = () => {
+      document.getElementById('welcome').textContent = `Welcome, ${user.name}!`;
+      loadMyDrivesAndApplications();
+    };
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('token'); localStorage.removeItem('user');
+        alert('You have been logged out.'); window.location.href = 'auth.html';
+    });
+
+    // --- THIS IS THE FULLY CORRECTED FUNCTION ---
+    async function loadMyDrivesAndApplications() {
+        // --- Part 1: Load and Display "My Applied Drive Status" (Your original code, no change here) ---
+        const myDrivesContainer = document.getElementById('myDrivesContainer');
+        myDrivesContainer.innerHTML = ''; 
+        try {
+            const myDrivesResponse = await fetch('/api/mydrives', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!myDrivesResponse.ok) throw new Error('Could not fetch your drive data.');
+            const myDrives = await myDrivesResponse.json();
+            
+            if (myDrives.length === 0) {
+                myDrivesContainer.innerHTML = `<p style="font-style: italic; color: #555;">No placement drive information has been assigned to you yet.</p>`;
+            } else {
+                myDrives.forEach(drive => {
+                    let roundsHtml = '<ul class="rounds-timeline">';
+                    drive.rounds.forEach(round => {
+                        let statusClass = round.status.toLowerCase();
+                        roundsHtml += `<li class="${statusClass}"><div class="round-name">${round.name}</div><div class="round-status">Status: ${round.status}</div></li>`;
+                    });
+                    roundsHtml += '</ul>';
+                    const statusClassName = drive.currentStatus.replace(/[\s-]+/g, '');
+                    const driveCardHtml = `
+                        <div style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                                <h3 style="margin:0;">${drive.companyName}</h3>
+                                <span class="status-badge status-${statusClassName}">${drive.currentStatus}</span>
+                            </div>
+                            ${roundsHtml}
+                        </div>
+                    `;
+                    myDrivesContainer.innerHTML += driveCardHtml;
+                });
+            }
+        } catch (err) {
+            console.error("Failed to load my drives:", err);
+            myDrivesContainer.innerHTML = `<p style="color:red;">Could not load your drive data.</p>`;
+        }
+        
+        // --- Part 2: Load "Available Drives" (This part is now fixed) ---
+        const availableDrivesContainer = document.getElementById('availableDrivesContainer');
+        availableDrivesContainer.innerHTML = '<p>Loading available drives...</p>';
+        try {
+            // A) Fetch the list of drive IDs the student has ALREADY applied to
+            const applicationsResponse = await fetch('/api/my-applications', { headers: { 'Authorization': `Bearer ${token}` } });
+            const appliedDriveIds = await applicationsResponse.json();
+            const myApplicationIds = new Set(appliedDriveIds); // Use the new, correct data
+    
+            // B) Fetch all active drives
+            const activeDrivesResponse = await fetch('/api/active-drives', { headers: { 'Authorization': `Bearer ${token}` }});
+            if (!activeDrivesResponse.ok) throw new Error('Could not fetch company drives.');
+            const activeDrives = await activeDrivesResponse.json();
+            
+            if(activeDrives.length === 0) {
+                availableDrivesContainer.innerHTML = '<p style="font-style: italic; color: #555;">No open drives are available at the moment.</p>';
+                return;
+            }
+            
+            availableDrivesContainer.innerHTML = '';
+            activeDrives.forEach(drive => {
+                // C) Check against the correct list
+                const hasApplied = myApplicationIds.has(drive._id);
+                const driveHtml = `
+                    <div class="available-drive-item">
+                        <div class="drive-details">
+                            <div>
+                                <div class="drive-title">${drive.companyName} — ${drive.jobRole}</div>
+                                <div class="drive-meta">
+                                    <strong>Package:</strong> ${drive.packageLPA} LPA | <strong>Min CGPA:</strong> ${drive.eligibility.minCGPA} | <strong>Applicants:</strong> ${drive.applicantCount}
+                                </div>
+                                <div class="drive-meta"><strong>Apply Before:</strong> ${new Date(drive.lastDateToApply).toLocaleDateString()}</div>
+                            </div>
+                            <div class="drive-apply">
+                                <button id="applyBtn-${drive._id}" onclick="applyForDrive('${drive._id}')" ${hasApplied ? 'disabled' : ''}>
+                                    ${hasApplied ? '✓ Applied' : 'Apply Now'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                availableDrivesContainer.innerHTML += driveHtml;
+            });
+        } catch(err) {
+            availableDrivesContainer.innerHTML = '<p style="color:red;">Could not load available drives.</p>';
+        }
+    }
+
+    // --- FUNCTION 3: APPLY FOR A DRIVE ---
+    async function applyForDrive(driveId) {
+        const applyButton = document.getElementById(`applyBtn-${driveId}`);
+        applyButton.textContent = 'Applying...';
+        applyButton.disabled = true;
+        try {
+            const response = await fetch(`/api/drives/${driveId}/apply`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const result = await response.json();
+            if (!response.ok) throw result;
+            alert('Application submitted successfully!');
+            applyButton.textContent = '✓ Applied';
+        } catch (error) {
+            alert(`Error: ${error.message || 'Could not submit application.'}`);
+            applyButton.textContent = 'Apply Now'; // Revert button on error
+            applyButton.disabled = false;
+        }
+    }
+  </script>
+</body>
+</html>

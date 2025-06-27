@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TPO Dashboard | Placemind</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.tailwindcss.com/2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+  <!-- ======================= HEADER / NAVBAR ======================= -->
+  <nav class="bg-indigo-900 text-white px-6 py-3 flex justify-between items-center shadow-md">
+    <h1 class="text-xl font-bold tracking-wider">Placemind - TPO Dashboard</h1>
+    <button onclick="logout()" class="bg-red-600 px-4 py-2 rounded-md hover:bg-red-700 transition duration-200">Logout</button>
+  </nav>
+
+  <main class="p-6">
+    <h2 class="text-2xl font-bold mb-6" id="welcomeMessage"></h2>
+
+    <!-- ======================= QUICK ACTION CARDS ======================= -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <a href="manage-placements.html" class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-transform duration-200 block text-center">
+            <div class="text-4xl mb-3">📊</div>
+            <h3 class="font-bold text-lg text-indigo-900">Manage Placements</h3>
+            <p class="text-sm text-gray-600">View, add, and bulk upload placement records.</p>
+        </a>
+        <a href="manage-eligible-students.html" class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-transform duration-200 block text-center">
+            <div class="text-4xl mb-3">📋</div>
+            <h3 class="font-bold text-lg text-indigo-900">Eligible Students</h3>
+            <p class="text-sm text-gray-600">Maintain the master list of all eligible students.</p>
+        </a>
+        <a href="tpo-analytics.html" class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-transform duration-200 block text-center">
+            <div class="text-4xl mb-3">📈</div>
+            <h3 class="font-bold text-lg text-indigo-900">Placement Analytics</h3>
+            <p class="text-sm text-gray-600">View Placed vs. Unplaced student statistics.</p>
+        </a>
+        <a href="manage-drives.html" class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-transform duration-200 block text-center">
+            <div class="text-4xl mb-3">📢</div>
+            <h3 class="font-bold text-lg text-indigo-900">Post Company Drives</h3>
+            <p class="text-sm text-gray-600">Create and manage job notifications for students.</p>
+        </a>
+    </section>
+
+    <!-- ======================= CHARTS SECTION ======================= -->
+    <section class="bg-white p-6 rounded-lg shadow-lg">
+      <h2 class="text-xl font-bold mb-4 border-b pb-2">📊 At-a-Glance Placement Stats</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+        <div>
+          <h3 class="text-center font-semibold mb-2">Placements by Branch</h3>
+          <canvas id="branchChart"></canvas>
+        </div>
+        <div>
+          <h3 class="text-center font-semibold mb-2">Placements by Company</h3>
+          <canvas id="companyChart"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // --- SECURITY & PAGE SETUP ---
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (!token || !user || user.role !== 'tpo') {
+      alert('Access Denied. Please login as a TPO.');
+      window.location.href = '/auth.html';
+    }
+
+    // --- LOGOUT FUNCTION (Single, clean version) ---
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      alert("You have been logged out.");
+      window.location.href = "auth.html";
+    }
+
+    // --- INITIALIZE DASHBOARD ---
+    window.onload = () => {
+        document.getElementById('welcomeMessage').textContent = `Welcome back, ${user.name}!`;
+        fetchDashboardCharts();
+    };
+
+    // --- CHARTING LOGIC ---
+    let branchChartInstance;
+    let companyChartInstance;
+
+    async function fetchDashboardCharts() {
+        try {
+            const response = await fetch('/api/placements', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch data');
+            const placements = await response.json();
+
+            // Process data for charts
+            const branchData = placements.reduce((acc, p) => {
+                acc[p.branch] = (acc[p.branch] || 0) + 1;
+                return acc;
+            }, {});
+
+            const companyData = placements.reduce((acc, p) => {
+                acc[p.company] = (acc[p.company] || 0) + 1;
+                return acc;
+            }, {});
+
+            // Render charts
+            renderBranchChart(branchData);
+            renderCompanyChart(companyData);
+
+        } catch (error) {
+            console.error("Error fetching chart data:", error);
+            // You can add an error message to the UI here if needed
+        }
+    }
+
+    function renderBranchChart(data) {
+        const ctx = document.getElementById('branchChart').getContext('2d');
+        if (branchChartInstance) branchChartInstance.destroy(); // Clear old chart
+        branchChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    label: 'Placements',
+                    data: Object.values(data),
+                    backgroundColor: ['#4F46E5', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'],
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    function renderCompanyChart(data) {
+        const ctx = document.getElementById('companyChart').getContext('2d');
+        if (companyChartInstance) companyChartInstance.destroy(); // Clear old chart
+        companyChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    label: 'Number of Hires',
+                    data: Object.values(data),
+                    backgroundColor: '#3B82F6',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+  </script>
+
+</body>
+</html>
